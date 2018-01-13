@@ -1,0 +1,827 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <Windows.h>
+#include <time.h>
+#include <algorithm>
+#include <cstdlib>
+
+const int  FIELD_DIM = 11;
+HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+const char WATER_SYMB = ' ';
+const char SHIP_SYMB = 4;
+using namespace std;
+/////////////////////////////////////////////////////////////////////////////////////////
+bool  ship_is_good//Определение правильно ли поставлен корабль 
+(
+int         size,
+bool        is_horiz,
+int         row_top,
+int         col_left,
+const char  field[][FIELD_DIM]
+)
+{
+	if (is_horiz)
+	{
+		for (int i = max(1, row_top - 1);
+			i <= min(FIELD_DIM - 1, row_top + 1);
+			++i)
+		{
+			for (int j = max(1, col_left - 1);
+				j <= min(FIELD_DIM - 1, col_left + size);
+				++j)
+			{
+				if (field[i][j] == SHIP_SYMB) return false;
+			}
+		}
+		return  true;
+	}
+	else//вертикальный
+	{
+		for (int i = max(1, row_top - 1);
+			i <= min(FIELD_DIM - 1, row_top + size);
+			++i)
+		{
+			for (int j = max(1, col_left - 1);
+				j <= min(FIELD_DIM - 1, col_left + 1);
+				++j)
+			{
+				if (field[i][j] == SHIP_SYMB) return false;
+			}
+		}
+		return  true;
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+void  set_ship_with_size(int  size, char  field[][FIELD_DIM])
+{
+	bool  is_horiz = rand() % 2 == 0;
+	int   row_top = 0;
+	int   col_left = 0;
+
+	do
+	{
+		do
+		{
+			row_top = rand() % 9 + 1;
+		} while (!is_horiz
+			&& row_top > FIELD_DIM - size);
+
+		do
+		{
+			col_left = rand() % 9 + 1;
+		} while (is_horiz
+			&& col_left > FIELD_DIM - size);
+	} while (!ship_is_good(size, is_horiz, row_top, col_left, field));
+
+	if (is_horiz)
+	{
+		for (int j = col_left; j < col_left + size; ++j)
+		{
+			field[row_top][j] = SHIP_SYMB;
+		}
+	}
+	else//вертикальный
+	{
+		for (int i = row_top; i < row_top + size; ++i)
+		{
+			field[i][col_left] = SHIP_SYMB;
+		}
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+void  set_ships(char  field[][FIELD_DIM])//расставление кораблей 
+{
+	for (int i = 0; i < 1; ++i)
+	{
+		set_ship_with_size(4, field);
+	}
+
+	for (int i = 0; i < 2; ++i)
+	{
+		set_ship_with_size(3, field);
+	}
+
+	for (int i = 0; i < 3; ++i)
+	{
+		set_ship_with_size(2, field);
+	}
+
+	for (int i = 0; i < 4; ++i)
+	{
+		set_ship_with_size(1, field);
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+void  print_field(const char  field[][FIELD_DIM])//Рисование поля
+{
+	for (int i = 0; i < FIELD_DIM; ++i)
+	{
+		for (int j = 0; j < FIELD_DIM; ++j)
+		{
+			std::cout << field[i][j]
+				<< ' ';
+		}
+		std::cout << std::endl;
+	}
+	cout << endl;
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+void  set_water(char  field[][FIELD_DIM])//Заполнение массива 
+{
+	for (int i = 0; i < FIELD_DIM; ++i)
+	{
+		for (int j = 0; j < FIELD_DIM; ++j)
+		{
+			field[i][j] = WATER_SYMB;
+		}
+	}
+
+}
+
+void game(char bot[FIELD_DIM][FIELD_DIM], char m[FIELD_DIM][FIELD_DIM])//ход игрока
+{
+	bool flag = true;
+	char a = 'A';
+	char *a1 = new char[80];
+	char b = '0';
+	char *b1 = new char[80];
+	int k = 0;
+	int k1 = 0;
+
+	while (flag)
+	{
+		k = 0;
+		k1 = 0;
+		a = 'A','a';
+		b = '0';
+		cout << "Enter the letter" << endl;
+		gets_s(a1, 80);
+		cout << "Enter the digit" << endl;
+		gets_s(b1, 80);
+		for (int i = 0; i < 10; i++)
+		{
+			if (*a1 == a)
+			{
+				k = i;
+				i = 10;
+			}
+			a++;
+		}
+		for (int i = 0; i < 10; i++)
+		{
+			if (strcmp(b1, "10") == 0)
+			{
+				k1 = 10;
+				i = 10;
+			}
+			else if (*b1 == b)
+			{
+				k1 = i;
+				i = 10;
+			}
+
+			b++;
+		}
+		k++;
+		if (m[k1][k] != ' ')
+		{
+			cout << "Miss ^_^" << endl;
+		}
+		else if (m[k1][k] == '*' || m[k1][k] == 3 || m[k1][k] == 1)
+		{
+			cout << "You shot here choose another location ^_^" << endl;
+		}
+		else if (bot[k1][k] == 4)
+		{
+
+			m[k1][k] = 3;
+			bot[k1][k] = 3;
+			flag = false;
+
+
+
+		}
+		else
+		{
+			flag = false;
+			m[k1][k] = '*';
+		}
+
+	}
+
+}
+
+void addv(char(*m)[FIELD_DIM])//заполнение знаками 
+{
+
+	char a = 'A';
+	char b = '1';
+	int k = 1;
+	bool flag;
+	while (k<11)
+	{
+		m[0][k] = a;
+		m[k][0] = b;
+		a++;
+		b++;
+		k++;
+	}
+
+
+
+
+}
+
+void game_bot(char field[11][11], char bot[11][11])//ход бота
+{
+
+	char a = 'A';
+	char b = '0';
+	int k = 0;
+	int k1 = 0;
+	char *a1 = new char[80];
+	char *b1 = new char[80];
+	bool flag = true;
+
+	while (flag)
+	{
+
+		k = 0;
+		k1 = 0;
+		a = 'A', 'a';
+		b = '0';
+		*a1 = rand() % a + 9;
+		*b1 = rand() % a + 9;
+		for (int i = 0; i < 10; i++)
+		{
+			if (*a1 == a)
+			{
+				k = i;
+				i = 10;
+			}
+			a++;
+		}
+		for (int i = 0; i < 10; i++)
+		{
+			if (strcmp(b1, "10") == 0)
+			{
+				k1 = 10;
+				i = 10;
+			}
+			else if (*b1 == b)
+			{
+				k1 = i;
+				i = 10;
+			}
+
+			b++;
+		}
+		k++;
+		k1++;
+
+		if (field[k1][k] == '*'
+			|| field[k1][k] == 3
+			|| field[k1][k] == 1)
+		{
+			flag = true;
+		}
+		else if (field[k1][k] == 4)
+		{
+			field[k1][k] = 3;
+			bot[k1][k] = 3;
+			flag = false;
+		}
+		else
+		{
+			field[k1][k] = '*';
+			bot[k1][k] = '*';
+			flag = false;
+		}
+
+	}
+
+}
+
+void kravota(char field[][11], char mas[][22], char m[][11])//Наведение красоты " неиспользуется  сейчас "
+{
+	for (int i = 0; i < FIELD_DIM; ++i)
+	{
+		for (int j = 0; j < FIELD_DIM; ++j)
+		{
+			mas[i][j] = field[i][j];
+
+		}
+		for (int j = FIELD_DIM; j < FIELD_DIM + FIELD_DIM; ++j)
+		{
+
+			mas[i][j] = m[i][j - FIELD_DIM];
+
+		}
+
+	}
+
+	for (int i = 0; i < FIELD_DIM; ++i)
+	{
+		for (int j = 0; j < FIELD_DIM; ++j)
+		{
+			cout << mas[i][j] << " ";
+
+		}
+		cout.width(4);
+		for (int j = FIELD_DIM; j < FIELD_DIM + FIELD_DIM; ++j)
+		{
+
+			cout << mas[i][j] << " ";
+
+		}
+		cout << endl;
+	}
+	cout << endl;
+
+
+}
+///////////////////////////////////////////////////////////////////////
+void fuul(char m[][11], char bot[][11])//Проверка убил ли корабль или его только подстрелили 
+{
+	for (int y = 0; y < 11; y++)
+	{
+		for (int x = 0; x < 11; x++)
+		{
+
+			if (m[y][x] == 3)
+			{
+				if (bot[y][x + 1] != 4
+					&& bot[y + 1][x] != 4
+					&& bot[y - 1][x] != 4
+					&& bot[y][x - 1] != 4
+					&& bot[y + 1][x - 1] != 4
+					&& bot[y - 1][x + 1] != 4)
+				{
+					m[y][x] = 1;
+					bot[y][x] = 1;
+				}
+			}
+
+
+		}
+	}
+	for (int y = 0; y < 11; y++)
+	{
+		for (int x = 0; x < 11; x++)
+		{
+
+
+			if (m[y][x] == 1 || bot[y][x] == 1)
+			{
+				if (m[y][x + 1] == 3
+					|| m[y + 1][x] == 3
+					|| m[y - 1][x] == 3
+					|| m[y][x - 1] == 3
+					|| m[y + 1][x - 1] == 3
+					|| m[y - 1][x + 1] == 3)
+				{
+					m[y][x] = 3;
+					bot[y][x] = 3;
+				}
+			}
+
+		}
+	}
+	for (int y = 0; y < 11; y++)
+	{
+		for (int x = 0; x < 11; x++)
+		{
+
+
+			if (m[y][x] == 1 || bot[y][x] == 1)
+			{
+				if (m[y][x + 1] == 3
+					|| m[y + 1][x] == 3
+					|| m[y - 1][x] == 3
+					|| m[y][x - 1] == 3
+					|| m[y + 1][x - 1] == 3
+					|| m[y - 1][x + 1] == 3)
+				{
+					m[y][x] = 3;
+					bot[y][x] = 3;
+				}
+			}
+
+		}
+	}
+}
+void draw_lattice(unsigned int rows, unsigned int cols, unsigned int cell_size = 3, int Xpos = 0, int Ypos = 0)//рисование поля 
+{//cтроки
+	COORD coord = { Xpos, Ypos };
+
+	cell_size++;
+	int width = cols * cell_size + 1, height = rows*cell_size + 1;
+	char s;
+	for (int y = 0; y < height; y++)
+	{
+		SetConsoleCursorPosition(handle, coord);
+		for (int x = 0; x < width; x++)
+		{
+			if (y == 0 && x == 0)
+				s = 218;
+			else if (x == 0 && y == height - 1)
+				s = 192;
+			else if (y == 0 && x == width - 1)
+				s = 191;
+			else if (y == height - 1 && x == width - 1)
+				s = 217;
+			else if (y == 0 && x % cell_size == 0)
+				s = 194;
+			else if (y == height - 1 && x % cell_size == 0)
+				s = 193;
+			else if (x == 0 && y % cell_size == 0)
+				s = 195;
+			else if (x == width - 1 && y % cell_size == 0)
+				s = 180;
+			else if (x % cell_size == 0 && y % cell_size == 0)
+				s = 197;
+			else if (x % cell_size == 0)
+				s = 179;
+			else if (y % cell_size == 0)
+				s = 196;
+			else
+				s = ' ';
+			putchar(s);
+		}
+		coord.Y++;
+	}
+	SetConsoleCursorPosition(handle, { 0, 0 });
+}
+void draw_s(char s, unsigned int Xpos, unsigned Ypos)
+{
+	COORD coord = { Xpos, Ypos };
+	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+
+	SetConsoleCursorPosition(handle, coord);
+	cout << s;
+	SetConsoleCursorPosition(handle, { 0, 0 });
+
+}
+void draw_field(char board[11][11], unsigned Xpos, unsigned Ypos)//Положение фигур
+{
+
+	for (int y = 0; y < 11; y++)
+	for (int x = 0; x < 11; x++)
+		draw_s(board[y][x], Xpos + x * 2, Ypos + y * 2);
+
+
+
+}
+
+void main()
+{
+	srand(time(NULL));
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
+	char field[FIELD_DIM][FIELD_DIM];
+	char m[FIELD_DIM][FIELD_DIM];
+	char bot[FIELD_DIM][FIELD_DIM];
+	char bot1[FIELD_DIM][FIELD_DIM];
+	char mas[22][22];
+	bool flag = true;
+	set_water(field);
+	set_water(m);
+	set_water(bot);
+	set_water(bot1);
+	addv(m);
+	addv(field);
+	set_ships(field);
+	set_ships(bot);
+	kravota(field, mas, m);
+	draw_lattice(11, 11, 1, 0, 0);
+	draw_lattice(11, 11, 1, 25, 0);
+	draw_field(field, 1, 1);
+	draw_field(m, 26, 1);
+
+	SetConsoleCursorPosition(handle, { 0, 25 });
+	while (true)
+	{
+
+		game(bot, m);
+		fuul(m, bot);
+		game_bot(field, bot1);
+		fuul(bot1, field);
+		system("cls");
+
+		draw_lattice(11, 11, 1, 0, 0);
+		draw_lattice(11, 11, 1, 25, 0);
+		draw_field(field, 1, 1);
+		draw_field(m, 26, 1);
+
+		SetConsoleCursorPosition(handle, { 0, 25 });
+
+	}
+
+}
+
+
+
+
+//enum ACTION{
+//	LEFT_BUTTON,
+//	RIGHT_BUTTON,
+//	EXIT
+//};
+//ACTION GET_CHOICE(COORD & c)
+//{
+//	HANDLE h_in = GetStdHandle(STD_INPUT_HANDLE); // дескриптор окна для работы с мышкой
+//	SetConsoleMode(h_in, ENABLE_MOUSE_INPUT); // установка режима использования мышки
+//
+//	INPUT_RECORD all_events[256]; // массив событий, произошедших в консоли
+//	DWORD read_event; // переменная, в которую запишется количество произошедших событий
+//
+//	while (true)
+//	{
+//		ReadConsoleInput(h_in, all_events, 256, &read_event); // получить все события, произошедшие в консоли
+//		if (all_events[0].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
+//		{ // если нажата левая кнопка мыши
+//			c = all_events[0].Event.MouseEvent.dwMousePosition;
+//			return LEFT_BUTTON;
+//		}
+//
+//
+//		else if (all_events[0].Event.MouseEvent.dwButtonState == RIGHTMOST_BUTTON_PRESSED)
+//		{ // если нажата правая кнопка мыши
+//			c = all_events[0].Event.MouseEvent.dwMousePosition;
+//			return RIGHT_BUTTON;
+//		}
+//	}
+//}
+
+
+
+
+//void draw_s(char s, unsigned int Xpos, unsigned Ypos)
+//{
+//	COORD coord = { Xpos, Ypos };
+//	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+//
+//
+//	SetConsoleCursorPosition(handle, coord);
+//	cout << s;
+//	SetConsoleCursorPosition(handle, { 0, 0 });
+//
+//}
+//void clearscreen() //очищает окно консоли
+//{
+//	for (int i = 0; i < 100; i++)
+//	{
+//		cout << endl;
+//	}
+//}
+//void clear_board()//Очищает доску
+//{
+//
+//	for (int i = 0; i < 9; i++)
+//	{
+//		board[i] = ' ';
+//	}
+//
+//
+//}
+//
+//
+//bool has_won(char a[9])//Проверяет конец игры
+//{
+//	if (a[0, 1, 2] == 1 || a[3, 4, 5] == 1 || a[6, 7, 8] == 1 || a[0, 3, 6] == 1 || a[1, 4, 7] == 1 ||
+//		a[2, 5, 8] == 1 || a[0, 4, 8] == 1 || a[2, 4, 6] == 1)
+//		//Выграшные варианты
+//	{
+//		return false;
+//	}
+//	/*if (a[0, 1, 2] == 'O' || a[3, 4, 5] == 'O' || a[6, 7, 8] == 'O' || a[0, 3, 6] == 'O' || a[1, 4, 7] == 'O' ||
+//	a[2, 5, 8] == 'O' || a[0, 4, 8] == 'O' || a[2, 4, 6] == 'O')
+//	{
+//	return true;
+//	}*/
+//
+//
+//}
+//
+//
+//
+//void pos(unsigned Xpos, unsigned Ypos)
+//{
+//
+//	board[0] = (Xpos + 6, Ypos + 6);
+//	board[1] = (Xpos + 10, Ypos + 6);
+//	board[2] = (Xpos + 14, Ypos + 6);
+//	board[3] = (Xpos + +6, Ypos + 10);
+//	board[4] = (Xpos + 6, Ypos + 14);
+//	board[5] = (Xpos + 6, Ypos + 6);
+//	board[6] = (Xpos + 6, Ypos + 6);
+//	board[7] = (Xpos + 10, Ypos + 6);
+//	board[8] = (Xpos + 10, Ypos + 6);
+//
+//
+//
+//
+//}
+//
+//
+//void draw_field(char board[100], unsigned Xpos, unsigned Ypos)//Положение фигур
+//{
+//
+//	for (int y = 0; y < 10; y++)
+//		for (int x = 0; x < 10; x++)
+//			draw_s(board[y * 10 + x], Xpos + 0 + x * 4, Ypos + 0 + y * 4);
+//
+//
+//
+//}
+//
+//void step_player(char board[9], char s)
+//{
+//
+//	while (true)
+//	{
+//		COORD b;
+//		GET_CHOICE(b);
+//		int x, y;
+//		x = (b.X - 6) / 4;
+//		y = (b.Y - 6) / 4;
+//		if (x<0 || y<0 || x>2 || y>2)
+//			continue;
+//		if (board[y * 3 + x] != ' ')
+//			continue;
+//		board[y * 3 + x] = s;
+//		break;
+//
+//	}
+//
+//
+//}
+//
+//void play_and_winner() //Показывает победителя
+//{
+//
+//	int turn = 1;
+//	while (!has_won == 1 && !has_won == 'O')
+//	{
+//		clearscreen();//Очищаем консоль
+//		if (has_won == false)
+//		{
+//			cout << "Поздравляю!Вы выйграли!";
+//		}
+//		else
+//		{
+//			cout << "Вы проиграли";
+//		}
+//
+//		cout << endl;
+//	}
+//
+//}
+//int free()//Проверка на свободу ячейки
+//{
+//	board[9] = { false };
+//	for (int i = 0; i < 9; i++)
+//	{
+//		if (board[i] == 1 || board[i] == 'O')
+//		{
+//			return true;
+//		}
+//		else
+//		{
+//			return false;
+//		}
+//	}
+//
+//
+//}
+//void hod(char player, char comp)//Проверяем чей ход
+//{
+//	player = 1;
+//	comp = 'O';
+//	if (player == false)
+//	{
+//		comp == true;
+//	}
+//	else if (comp == false)
+//	{
+//		player == true;
+//	}
+//
+//
+//
+//}
+//
+//
+//void ii(char comp)
+//{
+//	for (int i = 0; i < 9; i++)
+//	{
+//
+//		free();//проверяем ячейки
+//		hod(1, 'Y');//Проверяем чей ход
+//		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true)
+//		{
+//			comp == board[8];
+//			board[8] == 'Y';
+//		}
+//
+//		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[8] == true)
+//		{
+//			comp == board[7];
+//			board[7] == 'Y';
+//		}
+//
+//		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[7] == true || board[8] == true)
+//		{
+//			comp == board[6];
+//			board[6] == 'Y';
+//		}
+//
+//		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[6] == true || board[7] == true || board[8] == true)
+//		{
+//			comp == board[5];
+//			board[5] == 'Y';
+//		}
+//
+//		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+//		{
+//			comp == board[4];
+//			board[4] == 'Y';
+//		}
+//
+//		if (board[0] == true || board[1] == true || board[2] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+//		{
+//			comp == board[3];
+//			board[3] == 'Y';
+//		}
+//
+//		if (board[0] == true || board[1] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+//		{
+//			comp == board[2];
+//			board[2] == 'Y';
+//		}
+//
+//		if (board[0] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+//		{
+//			comp == board[1];
+//			board[1] == 'Y';
+//		}
+//
+//		if (board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+//		{
+//			comp == board[0];
+//			board[0] == 'Y';
+//		}
+//
+//
+//	}
+//}
+//
+//
+//void game()
+//{
+//
+//	/*char board[9];
+//	for (int i = 0; i < 9; i++)
+//	{
+//		board[i] = { ' ' };
+//	}*/
+//	draw_lattice(10, 10, 1, 0, 0);
+//	draw_lattice(10, 10, 1, 25,0);
+//	while (true)
+//	{
+//
+//
+//	}
+//	/*char symbol = 1;
+//	for (int i = 0; i < 9 && !has_won(board); i++);
+//	while (true)
+//	{
+//		step_player(board, symbol);
+//		draw_field(board, 5, 5);
+//		symbol = symbol == 1 ? 'O' : 1;
+//
+//
+//	}*/
+//
+//}
+//
+//
+//
+//
+//
+//void main()
+//{
+//
+//
+//	game();
+//
+//
+//
+//
+//
+//
+//
+//
+//}

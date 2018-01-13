@@ -1,0 +1,169 @@
+#include <iostream>
+char board[9] = {};
+using namespace std;
+
+void clearscreen() //очищает окно консоли
+{
+	for (int i = 0; i < 100; i++)
+	{
+		cout << endl;
+	}
+}
+void clear_board()//Очищает доску
+{
+
+	for (int i = 0; i < 9; i++)
+	{
+		board[i] = ' ';
+	}
+
+
+}
+
+
+bool has_won(char player)//Проверяет конец игры
+{
+	int win[][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 7, 8 }, { 0, 3, 6 }, { 1, 4, 7 },
+	{ 2, 5, 8 }, { 0, 4, 8 }, { 2, 4, 6 }
+	};//Выграшные варианты
+	for (int i = 0; i < 8; i++)//всего 8 занятых ячеек, дальше уже нет выйграша.
+	{
+		int combo = 0;
+		for (int j = 0; i < 3; j++)
+		{
+			if (board[win[i][j]] == player)
+				combo++;
+		}
+		if (combo == 3)
+		{
+			return true;//выйграл
+		}
+		else
+		{
+			return false;//не выйграл
+		}
+	}
+
+
+}
+
+
+void print_board(int indent)//Рисует доску
+{
+
+	cout << indent << '-' << board[0] << "' '-|' ' " << board[1] << "' '|' '" << board[2] << ' \n';
+	cout << indent << '-' << board[3] << "' ' |' ' " << board[4] << "' '|' '" << board[5] << ' \n';
+	cout << indent << '-' << board[6] << "' ' |' ' " << board[7] << "' '|' '" << board[8] << ' \n';
+
+
+}
+
+int get_move()//Ввод хода
+{
+
+	cout << "Ввод числа\t" << endl;
+	int move;
+	cin >> move;
+	while (move > 9 || move < 1)//Если ввел не правильное число
+	{
+		cout << "Введите число от 1 до 9:\t" << endl;
+		cin >> move;
+
+
+	}
+	return move;
+}
+
+
+char play_and_winner() //Показывает победителя
+{
+
+	int turn = 1;
+	while (!has_won('X') && !has_won('Y'))
+	{
+		clearscreen();//Очищаем консоль
+		int move = get_move();//Возвращаем ввод
+
+		clearscreen();
+
+		if (turn % 2 == 0)
+		{
+			board[move - 1] = 'X';
+			if (has_won('X'))
+			{
+				cout << "Поздравляю, 'X', вы выйграли\n";
+			}
+			return 'X';
+		}
+		else
+		{
+			board[move - 1] = 'Y';
+			if (has_won('Y'))
+			{
+				cout << "Поздравляю, 'Y', вы выйграли\n";
+			return 'Y';
+			}
+
+		}
+
+		turn++;
+		if (turn == 10)
+		{
+			cout << "Ничья!\n" << endl;
+		return 'A';
+		}
+
+	}
+
+}
+int free()//Проверка на свободу ячейки
+{
+	board[9] = { false };
+	for (int i = 0; i < 9; i++)
+	{
+		if (board[i] == get_move())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+
+}
+
+
+bool ii(char comp)
+{
+
+	free();//проверяем ячейки
+	if (board[4] == true)
+	{
+		comp == board[2];
+		board[2] == 'Y';
+	}
+	free();
+	if (board[4] && board[2]&&board[6] == true)
+	{
+		comp == board[8];
+		board[8] == 'Y';
+	}
+	free();
+	if (board[4] && board[2] && board[6] && board[8] && board[5] == true)
+	{
+		comp == board[0];
+		board[0] == 'Y';
+	}
+	free();
+	if (board[4] && board[2] && board[6] && board[8] && board[5] && board[0] && board[1] == true)
+	{
+		comp == board[0];
+		board[0] == 'Y';
+	}
+
+
+
+
+}

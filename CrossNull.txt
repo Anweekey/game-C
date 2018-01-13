@@ -1,0 +1,343 @@
+#include <iostream>
+#include <Windows.h>
+#include <time.h>
+char board[9] = {};
+using namespace std;
+
+enum ACTION{
+	LEFT_BUTTON,
+	RIGHT_BUTTON,
+	EXIT
+};
+ACTION GET_CHOICE(COORD & c)
+{
+	HANDLE h_in = GetStdHandle(STD_INPUT_HANDLE); // дескриптор окна для работы с мышкой
+	SetConsoleMode(h_in, ENABLE_MOUSE_INPUT); // установка режима использования мышки
+
+	INPUT_RECORD all_events[256]; // массив событий, произошедших в консоли
+	DWORD read_event; // переменная, в которую запишется количество произошедших событий
+
+	while (true)
+	{
+		ReadConsoleInput(h_in, all_events, 256, &read_event); // получить все события, произошедшие в консоли
+		if (all_events[0].Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
+		{ // если нажата левая кнопка мыши
+			c = all_events[0].Event.MouseEvent.dwMousePosition;
+			return LEFT_BUTTON;
+		}
+
+
+		else if (all_events[0].Event.MouseEvent.dwButtonState == RIGHTMOST_BUTTON_PRESSED)
+		{ // если нажата правая кнопка мыши
+			c = all_events[0].Event.MouseEvent.dwMousePosition;
+			return RIGHT_BUTTON;
+		}
+	}
+}
+
+
+void draw_lattice(unsigned int rows, unsigned int cols, unsigned int cell_size = 3, int Xpos = 0, int Ypos = 0)
+{//cтроки
+	COORD coord = { Xpos, Ypos };
+	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	cell_size++;
+	int width = cols * cell_size + 1, height = rows*cell_size + 1;
+	char s;
+	for (int y = 0; y < height; y++)
+	{
+		SetConsoleCursorPosition(handle, coord);
+		for (int x = 0; x < width; x++)
+		{
+			if (y == 0 && x == 0)
+				s = 218;
+			else if (x == 0 && y == height - 1)
+				s = 192;
+			else if (y == 0 && x == width - 1)
+				s = 191;
+			else if (y == height - 1 && x == width - 1)
+				s = 217;
+			else if (y == 0 && x % cell_size == 0)
+				s = 194;
+			else if (y == height - 1 && x % cell_size == 0)
+				s = 193;
+			else if (x == 0 && y % cell_size == 0)
+				s = 195;
+			else if (x == width - 1 && y % cell_size == 0)
+				s = 180;
+			else if (x % cell_size == 0 && y % cell_size == 0)
+				s = 197;
+			else if (x % cell_size == 0)
+				s = 179;
+			else if (y % cell_size == 0)
+				s = 196;
+			else
+				s = ' ';
+			putchar(s);
+		}
+		coord.Y++;
+	}
+	SetConsoleCursorPosition(handle, { 0, 0 });
+}
+
+void draw_s(char s, unsigned int Xpos, unsigned Ypos)
+{
+	COORD coord = { Xpos, Ypos };
+	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+
+	SetConsoleCursorPosition(handle, coord);
+	cout << s;
+	SetConsoleCursorPosition(handle, { 0, 0 });
+
+}
+void clearscreen() //очищает окно консоли
+{
+	for (int i = 0; i < 100; i++)
+	{
+		cout << endl;
+	}
+}
+void clear_board()//Очищает доску
+{
+
+	for (int i = 0; i < 9; i++)
+	{
+		board[i] = ' ';
+	}
+
+
+}
+
+
+bool has_won(char a[9])//Проверяет конец игры
+{
+	if (a[0, 1, 2] == 'X' || a[3, 4, 5] == 'X' || a[6, 7, 8] == 'X' || a[0, 3, 6] == 'X' || a[1, 4, 7] == 'X' ||
+		a[2, 5, 8] == 'X' || a[0, 4, 8] == 'X' || a[2, 4, 6] == 'X')
+		//Выграшные варианты
+	{
+		return false;
+	}
+	/*if (a[0, 1, 2] == 'O' || a[3, 4, 5] == 'O' || a[6, 7, 8] == 'O' || a[0, 3, 6] == 'O' || a[1, 4, 7] == 'O' ||
+	a[2, 5, 8] == 'O' || a[0, 4, 8] == 'O' || a[2, 4, 6] == 'O')
+	{
+	return true;
+	}*/
+
+
+}
+
+
+
+void pos(unsigned Xpos, unsigned Ypos)
+{
+
+	board[0] = (Xpos + 6, Ypos + 6);
+	board[1] = (Xpos + 10, Ypos + 6);
+	board[2] = (Xpos + 14, Ypos + 6);
+	board[3] = (Xpos + +6, Ypos + 10);
+	board[4] = (Xpos + 6, Ypos + 14);
+	board[5] = (Xpos + 6, Ypos + 6);
+	board[6] = (Xpos + 6, Ypos + 6);
+	board[7] = (Xpos + 10, Ypos + 6);
+	board[8] = (Xpos + 10, Ypos + 6);
+
+
+
+
+}
+
+
+void draw_field(char board[9], unsigned Xpos, unsigned Ypos)//Положение фигур
+{
+
+	for (int y = 0; y < 3; y++)
+	for (int x = 0; x < 3; x++)
+		draw_s(board[y*3+x], Xpos + 2 + x * 4, Ypos + 2 + y * 4);
+
+
+
+}
+
+void step_player(char board[9], char s)
+{
+
+	while (true)
+	{
+		COORD b;
+		GET_CHOICE(b);
+		int x, y;
+		x = (b.X - 6) / 4;
+		y = (b.Y - 6) / 4;
+		if (x<0 || y<0 || x>2 || y>2)
+			continue;
+		if (board[y*3+x] != ' ')
+			continue;
+		board[y*3+x] = s;
+		break;
+
+	}
+
+
+}
+
+void play_and_winner() //Показывает победителя
+{
+
+	int turn = 1;
+	while (!has_won == 'X' && !has_won == 'O')
+	{
+		clearscreen();//Очищаем консоль
+		if (has_won == false)
+		{
+			cout << "Поздравляю!Вы выйграли!";
+		}
+		else
+		{
+			cout << "Вы проиграли";
+		}
+
+		cout << endl;
+	}
+
+}
+int free()//Проверка на свободу ячейки
+{
+	board[9] = { false };
+	for (int i = 0; i < 9; i++)
+	{
+		if (board[i] == 'X' || board[i] == 'O')
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+
+}
+void hod(char player, char comp)//Проверяем чей ход
+{
+	player = 'X';
+	comp = 'O';
+	if (player == false)
+	{
+		comp == true;
+	}
+	else if (comp == false)
+	{
+		player == true;
+	}
+
+
+
+}
+
+
+void ii(char comp)
+{
+	for (int i = 0; i < 9; i++)
+	{
+
+		free();//проверяем ячейки
+		hod('X', 'Y');//Проверяем чей ход
+		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true)
+		{
+			comp == board[8];
+			board[8] == 'Y';
+		}
+
+		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[8] == true)
+		{
+			comp == board[7];
+			board[7] == 'Y';
+		}
+
+		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[7] == true || board[8] == true)
+		{
+			comp == board[6];
+			board[6] == 'Y';
+		}
+
+		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[6] == true || board[7] == true || board[8] == true)
+		{
+			comp == board[5];
+			board[5] == 'Y';
+		}
+
+		if (board[0] == true || board[1] == true || board[2] == true || board[3] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+		{
+			comp == board[4];
+			board[4] == 'Y';
+		}
+
+		if (board[0] == true || board[1] == true || board[2] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+		{
+			comp == board[3];
+			board[3] == 'Y';
+		}
+
+		if (board[0] == true || board[1] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+		{
+			comp == board[2];
+			board[2] == 'Y';
+		}
+
+		if (board[0] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+		{
+			comp == board[1];
+			board[1] == 'Y';
+		}
+
+		if (board[1] == true || board[2] == true || board[3] == true || board[4] == true || board[5] == true || board[6] == true || board[7] == true || board[8] == true)
+		{
+			comp == board[0];
+			board[0] == 'Y';
+		}
+
+
+	}
+}
+
+
+void game()
+{
+
+	char board[9];
+	for (int i = 0; i < 9; i++)
+	{
+		board[i] = { ' ' };
+	}
+	draw_lattice(3, 3, 3, 5, 5);
+	char symbol = 'X';
+	for (int i = 0; i < 9 && !has_won(board); i++);
+	while (true)
+	{
+		step_player(board, symbol);
+		draw_field(board, 5, 5);
+		symbol = symbol == 'X' ? 'O' : 'X';
+
+
+	}
+
+}
+
+
+
+
+
+void main()
+{
+
+
+	game();
+
+
+
+
+
+
+
+
+}
